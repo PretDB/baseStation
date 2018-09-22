@@ -1,3 +1,9 @@
+#include "trilateration.h"
+vec3d solution;
+vec3d anchors[4];
+int dists[4];
+
+
 uint32_t hex2deci(const char* strHex)
 {
   uint32_t dwValue = 0;
@@ -28,6 +34,18 @@ void setup() {
   Serial.begin(115200);
   Serial2.begin(115200);
   while (Serial2.read() >= 0);
+  anchors[0].x = 0;
+  anchors[0].y = 0;
+  anchors[0].z = 0;
+  anchors[1].x = 2.4;
+  anchors[1].y = 3;
+  anchors[1].z = 0;
+  anchors[2].x = 4.8;
+  anchors[2].y = 0;
+  anchors[2].z = 0;
+  dists[0] = 2500;
+  dists[1] = 3100;
+  dists[2] = 2400;
 }
 
 void loop() {
@@ -59,5 +77,17 @@ void loop() {
       comdata = "";
     }
   }
+  unsigned long n = micros();
+  GetLocation(&solution, 0, anchors, dists);
+  unsigned long m = micros() - n;
+  Serial.print("Total time: ");
+  Serial.println(m);
+  Serial.print("x: ");
+  Serial.print(solution.x);
+  Serial.print(" y: ");
+  Serial.print(solution.y);
+  Serial.print(" z: ");
+  Serial.println(solution.z);
+  delay(1000);
   while (Serial2.read() >= 0);
 }
