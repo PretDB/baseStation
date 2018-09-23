@@ -13,8 +13,8 @@
 #ifndef __TRILATERATION_H__
 #define __TRILATERATION_H__
 
-#include "basetsd.h"
-#include "stdio.h"
+//#include "basetsd.h"
+//#include "stdio.h"
 
 //#define SHOW_PRINTS
 

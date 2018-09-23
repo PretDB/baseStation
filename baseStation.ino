@@ -1,8 +1,88 @@
 #include "trilateration.h"
+
+#define ID_BIT_0 PB0
+#define ID_BIT_1 PB1
+#define ID_BIT_2 PB10
+#define ID_BIT_3 PB11
+
+#define LED_CONTROL PC13
+
+#define MASTER 1
+
+
+// ID: 0 for debug, 1~6 for specific device.
+// if ID == 1, the device will be the master
+// device who send data to the other devies.
+static unsigned char ID = 0;
+
 vec3d solution;
 vec3d anchors[4];
 int dists[4];
+int currentSendDevice = 2;
+String comdata = "";
 
+
+
+
+uint32_t hex2deci(const char* strHex);
+void SendDataToLED(String s);
+int Master();
+int GetID();
+
+
+void setup() {
+  // put your setup code here, to run once:
+  anchors[0].x = 0;
+  anchors[0].y = 0;
+  anchors[0].z = 0;
+  anchors[1].x = 2.4;
+  anchors[1].y = 3;
+  anchors[1].z = 0;
+  anchors[2].x = 4.8;
+  anchors[2].y = 0;
+  anchors[2].z = 0;
+
+  pinMode(PC13, OUTPUT);
+  pinMode(ID_BIT_0, OUTPUT);
+  pinMode(ID_BIT_1, OUTPUT);
+  pinMode(ID_BIT_2, OUTPUT);
+  pinMode(ID_BIT_3, OUTPUT);
+  // Serial1 for data rail
+  Serial.begin(115200);
+  Serial.setTimeout(200);
+  // Serial2 for external devices, such as led transmiter and
+  // uwb module.
+  Serial2.begin(115200);
+  ID = GetID();
+  // Clear Serial data on rx line.
+  while (Serial.read() >= 0);
+  while (Serial2.read() >= 0);
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  switch (ID)
+  {
+    case MASTER:
+      Master();
+      break;
+
+    // If current device is not MASTER, it will only listens data
+    // from 485 line on Serial1, and then transmit to Serial2.
+    default:
+      Slave();
+      break;
+  }
+}
+
+void SendDataToLED(String s)
+{
+  digitalWrite(LED_CONTROL, LOW);
+  delay(1);
+  Serial2.println(s);
+  delay(1);
+  digitalWrite(LED_CONTROL, HIGH);
+}
 
 uint32_t hex2deci(const char* strHex)
 {
@@ -29,47 +109,47 @@ uint32_t hex2deci(const char* strHex)
   return dwValue;
 }
 
-void setup() {
-  // put your setup code here, to run once:
-  Serial.begin(115200);
-  Serial2.begin(115200);
-  while (Serial2.read() >= 0);
-  anchors[0].x = 0;
-  anchors[0].y = 0;
-  anchors[0].z = 0;
-  anchors[1].x = 2.4;
-  anchors[1].y = 3;
-  anchors[1].z = 0;
-  anchors[2].x = 4.8;
-  anchors[2].y = 0;
-  anchors[2].z = 0;
-  dists[0] = 2500;
-  dists[1] = 3100;
-  dists[2] = 2400;
+int GetID()
+{
+  int i = 0;
+  i |= digitalRead(ID_BIT_0);
+  i <<= 1;
+  i |= digitalRead(ID_BIT_1);
+  i <<= 1;
+  i |= digitalRead(ID_BIT_2);
+  i <<= 1;
+  i |= digitalRead(ID_BIT_3);
+  return i;
 }
-
-void loop() {
-  // put your main code here, to run repeatedly:
-  if (Serial2.available() > 0)
+int Master()
+{
+  if (Serial2)
   {
-    String comdata = Serial2.readStringUntil('\n');
-    if (comdata[0] == 'm')
+    comdata = Serial2.readStringUntil('\n');
+    int index = comdata.indexOf('m');
+    if (index == -1)
     {
-      Serial.print("Raw data: ");
-      Serial.println(comdata);
-
-      int d0 = hex2deci(comdata.substring(6, 14).c_str());
-      int d1 = hex2deci(comdata.substring(15, 23).c_str());
-      int d2 = hex2deci(comdata.substring(24, 32).c_str());
-      int d3 = hex2deci(comdata.substring(33, 41).c_str());
-      if (comdata[1] == 'c')
+      return;
+    }
+    else
+    {
+      char tag = comdata[comdata.indexOf(':') + 1];
+      dists[0] = hex2deci(comdata.substring(index + 6, index + 14).c_str());
+      dists[1] = hex2deci(comdata.substring(index + 15, index + 23).c_str());
+      dists[2] = hex2deci(comdata.substring(index + 24, index + 32).c_str());
+      dists[3] = hex2deci(comdata.substring(index + 33, index + 41).c_str());
+      if (comdata[inde + 1] == 'c')
       {
-        Serial.print("distance to A0: ");
-        Serial.print(d0);
-        Serial.print("\tdistance to A1: ");
-        Serial.print(d1);
-        Serial.print("\tdistance to A2: ");
-        Serial.println(d2);
+        dists[3] = dists[0];
+        GetLocation(&solution, 0, anchors, dists);
+        String msg = "^B" + String(currentSendDevice) + "T" + String(tag) + "X" + String(solution.x) + "Y" + String(solution.y) + "$%";
+        Serial.println(msg);
+        while (Serial2.read() >= 0);
+        currentSendDevice++;
+        if (currentSendDevice > 6)
+        {
+          currentSendDevice = 2;
+        }
       }
     }
     else
@@ -77,17 +157,23 @@ void loop() {
       comdata = "";
     }
   }
-  unsigned long n = micros();
-  GetLocation(&solution, 0, anchors, dists);
-  unsigned long m = micros() - n;
-  Serial.print("Total time: ");
-  Serial.println(m);
-  Serial.print("x: ");
-  Serial.print(solution.x);
-  Serial.print(" y: ");
-  Serial.print(solution.y);
-  Serial.print(" z: ");
-  Serial.println(solution.z);
-  delay(1000);
-  while (Serial2.read() >= 0);
 }
+void Slave()
+{
+  if (Serial)
+  {
+    comdata = Serial.readStringUntil('%');
+    int index = comdata.indexOf('B');
+    if (index == -1 || String(comdata[index + 1]).toInt() != ID)
+    {
+      return;
+    }
+    else
+    {
+      String msg = "^" + comdata.substring(index + 2, comdata.indexOf('$')) + "$";
+      Serial2.println(msg);
+    }
+  }
+  while (Serial.read() >= 0);
+}
+

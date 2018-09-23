@@ -11,14 +11,15 @@
 // -------------------------------------------------------------------------------------------------------------------
 
 
-#include "stdio.h"
-#include "math.h"
-#include "stdlib.h"
-#include "time.h"
+//#include "stdio.h"
+//#include "math.h"
+//#include "stdlib.h"
+//#include "time.h"
 
+#include <Arduino.h>
 #include "trilateration.h"
 
-#include <QDebug>
+//#include <QDebug>
 
 
 /* Largest nonnegative number still considered zero */
