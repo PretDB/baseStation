@@ -7,7 +7,9 @@
 
 #define LED_CONTROL PC13
 
-#define MASTER 1
+#define MASTER 0
+#define DBG_MASTER 8
+#define DBG_SLAVE  9
 
 
 // ID: 0 for debug, 1~6 for specific device.
@@ -26,7 +28,8 @@ String comdata = "";
 
 uint32_t hex2deci(const char* strHex);
 void SendDataToLED(String s);
-int Master();
+void Master();
+void Slave();
 int GetID();
 
 
@@ -42,33 +45,34 @@ void setup() {
   anchors[2].y = 0;
   anchors[2].z = 0;
 
-  pinMode(PC13, OUTPUT);
+  pinMode(LED_CONTROL, OUTPUT);
   pinMode(ID_BIT_0, OUTPUT);
   pinMode(ID_BIT_1, OUTPUT);
   pinMode(ID_BIT_2, OUTPUT);
   pinMode(ID_BIT_3, OUTPUT);
-  // Serial1 for data rail
-  Serial.begin(115200);
-  Serial.setTimeout(200);
-  // Serial2 for external devices, such as led transmiter and
+  // Serial2 for data rail
+  Serial2.begin(2400);
+  Serial2.setTimeout(200);
+  // Serial1 for external devices, such as led transmiter and
   // uwb module.
-  Serial2.begin(115200);
+  Serial1.begin(115200);
   ID = GetID();
   // Clear Serial data on rx line.
-  while (Serial.read() >= 0);
   while (Serial2.read() >= 0);
+  while (Serial1.read() >= 0);
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
+  ID = GetID();
   switch (ID)
   {
     case MASTER:
       Master();
       break;
-
+      
     // If current device is not MASTER, it will only listens data
-    // from 485 line on Serial1, and then transmit to Serial2.
+    // from 485 line on Serial1, and then transmit to Serial1.
     default:
       Slave();
       break;
@@ -78,9 +82,9 @@ void loop() {
 void SendDataToLED(String s)
 {
   digitalWrite(LED_CONTROL, LOW);
-  delay(1);
-  Serial2.println(s);
-  delay(1);
+  delay(2);
+  Serial1.println(s);
+  delay(2);
   digitalWrite(LED_CONTROL, HIGH);
 }
 
@@ -121,11 +125,11 @@ int GetID()
   i |= digitalRead(ID_BIT_3);
   return i;
 }
-int Master()
+void Master()
 {
-  if (Serial2)
+  if (Serial)
   {
-    comdata = Serial2.readStringUntil('\n');
+    comdata = Serial1.readStringUntil('\n');
     int index = comdata.indexOf('m');
     if (index == -1)
     {
@@ -138,13 +142,13 @@ int Master()
       dists[1] = hex2deci(comdata.substring(index + 15, index + 23).c_str());
       dists[2] = hex2deci(comdata.substring(index + 24, index + 32).c_str());
       dists[3] = hex2deci(comdata.substring(index + 33, index + 41).c_str());
-      if (comdata[inde + 1] == 'c')
+      if (comdata[index + 1] == 'c')
       {
         dists[3] = dists[0];
         GetLocation(&solution, 0, anchors, dists);
         String msg = "^B" + String(currentSendDevice) + "T" + String(tag) + "X" + String(solution.x) + "Y" + String(solution.y) + "$%";
-        Serial.println(msg);
-        while (Serial2.read() >= 0);
+        Serial2.println(msg);
+        while (Serial1.read() >= 0);
         currentSendDevice++;
         if (currentSendDevice > 6)
         {
@@ -152,28 +156,28 @@ int Master()
         }
       }
     }
-    else
-    {
-      comdata = "";
-    }
   }
+  else
+  {
+    comdata = "";
+  }
+
 }
 void Slave()
 {
-  if (Serial)
+  if (Serial2)
   {
-    comdata = Serial.readStringUntil('%');
-    int index = comdata.indexOf('B');
-    if (index == -1 || String(comdata[index + 1]).toInt() != ID)
+    comdata = Serial2.readStringUntil('%');
+    int index = comdata.indexOf('^');
+    if (index == -1 || String(comdata[index + 2]).toInt() != ID)
     {
       return;
     }
     else
     {
-      String msg = "^" + comdata.substring(index + 2, comdata.indexOf('$')) + "$";
-      Serial2.println(msg);
+      String msg = "^" + comdata.substring(index + 3, comdata.indexOf('$')) + "$";
+      SendDataToLED(msg);
     }
   }
-  while (Serial.read() >= 0);
+  while (Serial2.read() >= 0);
 }
-
