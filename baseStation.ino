@@ -5,7 +5,7 @@
 #define ID_BIT_3 PB10
 #define ID_BIT_4 PB11
 
-#define LED_CONTROL PC13
+#define LED_CONTROL PC14
 
 // The master device will receive distance between
 // tag and each beacon, calculate its location,
@@ -77,6 +77,7 @@ void setup() {
   // Serial1 for external devices, such as led transmiter and
   // uwb module.
   Serial1.begin(115200);
+  Serial.begin(115200);    // Debug
   ID = GetID();
   // Clear Serial data on rx line.
   while (Serial2.read() >= 0);
@@ -86,23 +87,30 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
   ID = GetID();
+  Serial.print("ID = " + String(ID));
   switch (ID)
   {
     case RLS_MASTER:
+      Serial.println(", Master, Release");
       Master();
       break;
 
     case DBG_MASTER:
+      Serial.println(", Master, Debug");
       DBG_Master();
+      delay(1000);
       break;
 
     case DBG_SLAVE:
+      Serial.println(", Slave, Debug");
       DBG_Slave();
+      delay(1000);
       break;
 
     // If current device is not MASTER, it will only listens data
     // from 485 line on Serial1, and then transmit to Serial1.
     default:
+      Serial.println(", default (Slave), Release");
       Slave();
       break;
   }
@@ -111,7 +119,7 @@ void loop() {
 void SendDataToLED(String s)
 {
   digitalWrite(LED_CONTROL, LOW);
-  delay(2);
+  delay(1);
   Serial1.println(s);
   delay(2);
   digitalWrite(LED_CONTROL, HIGH);
@@ -230,7 +238,6 @@ void Slave()
 void DBG_Master()
 {
   static int fake_dis_num = 0;
-  fake_dis_num = constrain(fake_dis_num, 0, 5);
 
   String comdata = fake_dis[fake_dis_num];
   if (MasterPreprocess(comdata) == 0)
@@ -238,19 +245,30 @@ void DBG_Master()
     GetLocation(&solution, 0, anchors, dists);
     String msg = "^B" + String(0) + "T" + String(tag) + "X" + String(solution.x) + "Y" + String(solution.y) + "$%";
     Serial2.println(msg);
+    Serial.println(msg);
+  }
+
+  fake_dis_num++;
+  if(fake_dis_num == 6)
+  {
+    fake_dis_num = 0;
   }
 }
 
 // DBG_Slave only send loc data to led transmiter.
 void DBG_Slave()
 {
-  static fake_loc_num = 0;
-  fake_loc_num = constrain(++fake_dis_num, 0, 5);
+  static int fake_loc_num = 0;
 
   String comdata = fake_loc[fake_loc_num];
 
   String msg = "^" + comdata.substring(3);
   SendDataToLED(msg);
-
+  Serial.println(msg);
+  fake_loc_num++;
+  if(fake_loc_num == 6)
+  {
+    fake_loc_num = 0;
+  }
 }
 
