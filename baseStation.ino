@@ -1,9 +1,9 @@
 #include "trilateration.h"
 
-#define ID_BIT_0 PB0
-#define ID_BIT_1 PB1
-#define ID_BIT_2 PB10
-#define ID_BIT_3 PB11
+#define ID_BIT_1 PB0
+#define ID_BIT_2 PB1
+#define ID_BIT_3 PB10
+#define ID_BIT_4 PB11
 
 #define LED_CONTROL PC13
 
@@ -20,13 +20,13 @@
 // mode, set bit 1 to 'ON'. Otherwise the module
 // will runs under release mode.
 #define DBG_MASTER   0x8    // Debug in master mode.
-#define DBG_SLAVE    0xF    // Debug in slave mode.
+#define DBG_SLAVE    0x9    // Debug in slave mode.
 
 
 // ID: 0 for master..
 // if ID == 0, the device will be the master
 // device who send data to the other devies
-static unsigned char ID = 0x0F;
+static unsigned char ID = 0x0F;    // This is a invalid ID
 
 vec3d solution;
 vec3d anchors[4] = { { 0.0, 0.0, 0.0 },
@@ -38,19 +38,19 @@ char tag = 0;
 int dists[4];
 String comdata = "";
 
-String fake_dis[] = { "mc 07 00000b0e 000005dc 00000b0e 00000000 0958 c0 40424042 a0:0",
-                      "mc 07 000005dc 00000b0e 000013a6 00000000 0958 c0 40424042 a0:0",
-                      "mc 07 00000960 00000bb8 00000960 00000000 0958 c0 40424042 a0:0",
-                      "mc 07 00000b0e 000005dc 00000b0e 00000000 0958 c0 40424042 a0:1",
-                      "mc 07 000005dc 00000b0e 000013a6 00000000 0958 c0 40424042 a0:1",
-                      "mc 07 00000960 00000bb8 00000960 00000000 0958 c0 40424042 a0:1"
+String fake_dis[] = { "mc 07 00000b0e 000005dc 00000b0e 00000000 0001 c0 40424042 a0:0",
+                      "mc 07 000005dc 00000b0e 000013a6 00000000 0002 c0 40424042 a0:0",
+                      "mc 07 00000960 00000bb8 00000960 00000000 0003 c0 40424042 a0:0",
+                      "mc 07 00000b0e 000005dc 00000b0e 00000000 0004 c0 40424042 a0:1",
+                      "mc 07 000005dc 00000b0e 000013a6 00000000 0005 c0 40424042 a0:1",
+                      "mc 07 00000960 00000bb8 00000960 00000000 0006 c0 40424042 a0:1"
                     };
 String fake_loc[] = { "^B1T0X2.4Y1.5$%",
-                      "^B4T0X0.0Y1.5$%",
-                      "^B5T0X2.0Y0$%",
-                      "^B1T1X2.4Y1.5$%",
-                      "^B4T1X0.0Y1.5$%",
-                      "^B5T1X2.0Y0$%"
+                      "^B2T0X0.0Y1.5$%",
+                      "^B3T0X2.0Y0$%",
+                      "^B4T1X2.4Y1.5$%",
+                      "^B5T1X0.0Y1.5$%",
+                      "^B6T1X2.0Y0$%"
                     };
 
 
@@ -66,11 +66,11 @@ int GetID();
 
 void setup() {
   // put your setup code here, to run once:
-  pinMode(LED_CONTROL, OUTPUT);
-  pinMode(ID_BIT_0, INPUT);
-  pinMode(ID_BIT_1, INPUT);
+  pinMode(LED_CONTROL, OUTPUT);    // LED controll pin
+  pinMode(ID_BIT_1, INPUT);        // ID pin bit 0
   pinMode(ID_BIT_2, INPUT);
   pinMode(ID_BIT_3, INPUT);
+  pinMode(ID_BIT_4, INPUT);
   // Serial2 for data rail
   Serial2.begin(2400);
   Serial2.setTimeout(200);
@@ -145,13 +145,13 @@ uint32_t hex2deci(const char* strHex)
 int GetID()
 {
   int i = 0;
-  i |= digitalRead(ID_BIT_0);
-  i <<= 1;
   i |= digitalRead(ID_BIT_1);
   i <<= 1;
   i |= digitalRead(ID_BIT_2);
   i <<= 1;
   i |= digitalRead(ID_BIT_3);
+  i <<= 1;
+  i |= digitalRead(ID_BIT_4);
   return i;
 }
 
@@ -240,10 +240,12 @@ void DBG_Master()
     Serial2.println(msg);
   }
 }
+
+// DBG_Slave only send loc data to led transmiter.
 void DBG_Slave()
 {
   static fake_loc_num = 0;
-  fake_loc_num = constrain(fake_dis_num, 0, 5);
+  fake_loc_num = constrain(++fake_dis_num, 0, 5);
 
   String comdata = fake_loc[fake_loc_num];
 
