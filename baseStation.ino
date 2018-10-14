@@ -29,10 +29,10 @@
 static unsigned char ID = 0x0F;    // This is a invalid ID
 
 vec3d solution;
-vec3d anchors[4] = { { 0.0, 0.0, 0.0 },
-  { 2.4, 3.0, 0.0 },
-  { 4.8, 0.0, 0.0 },
-  { 0.0, 0.0, 0.0 }
+vec3d anchors[4] = { { 1.50， 1.25, 0.00 },
+  { 3.00， 2.75， 0.00 },
+  { 4.50， 1.25， 0.00 },
+  { 0.00， 0.00， 0.00 }
 };
 char tag = 0;
 int dists[4];
