@@ -2,10 +2,16 @@
 
 #define ID_BIT_1 PB0
 #define ID_BIT_2 PB1
-#define ID_BIT_3 PB10
-#define ID_BIT_4 PB11
+#define ID_BIT_3 PA6
+#define ID_BIT_4 PA7
 
-#define LED_CONTROL PC14
+#define DBG_SERIAL Serial
+#define DEV_SERIAL Serial3
+#define DAT_SERIAL Serial2
+
+#define LED_CONTROL PB13
+
+#define LED_STATE PB12
 
 // The master device will receive distance between
 // tag and each beacon, calculate its location,
@@ -29,10 +35,10 @@
 static unsigned char ID = 0x0F;    // This is a invalid ID
 
 vec3d solution;
-vec3d anchors[4] = { { 1.50， 1.25, 0.00 },
-  { 3.00， 2.75， 0.00 },
-  { 4.50， 1.25， 0.00 },
-  { 0.00， 0.00， 0.00 }
+vec3d anchors[4] = { { 1.50, 1.25, 0.00 },
+  { 3.00, 2.75, 0.00 },
+  { 4.50, 1.25, 0.00 },
+  { 0.00, 0.00, 0.00 }
 };
 char tag = 0;
 int dists[4];
@@ -67,50 +73,51 @@ int GetID();
 void setup() {
   // put your setup code here, to run once:
   pinMode(LED_CONTROL, OUTPUT);    // LED controll pin
+  pinMode(LED_STATE, OUTPUT);      // State indicator
   pinMode(ID_BIT_1, INPUT);        // ID pin bit 0
   pinMode(ID_BIT_2, INPUT);
   pinMode(ID_BIT_3, INPUT);
   pinMode(ID_BIT_4, INPUT);
-  // Serial2 for data rail
-  Serial2.begin(2400);
-  Serial2.setTimeout(200);
-  // Serial1 for external devices, such as led transmiter and
+  // DAT_SERIAL for data rail
+  DAT_SERIAL.begin(2400);
+  DAT_SERIAL.setTimeout(200);
+  // DEV_SERIAL for external devices, such as led transmiter and
   // uwb module.
-  Serial1.begin(115200);
-  Serial.begin(115200);    // Debug
+  DEV_SERIAL.begin(115200);
+  DBG_SERIAL.begin(115200);    // Debug
   ID = GetID();
   // Clear Serial data on rx line.
-  while (Serial2.read() >= 0);
-  while (Serial1.read() >= 0);
+  while (DAT_SERIAL.read() >= 0);
+  while (DEV_SERIAL.read() >= 0);
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
   ID = GetID();
-  Serial.print("ID = " + String(ID));
+  DBG_SERIAL.print("ID = " + String(ID));
   switch (ID)
   {
     case RLS_MASTER:
-      Serial.println(", Master, Release");
+      DBG_SERIAL.println(", Master, Release");
       Master();
       break;
 
     case DBG_MASTER:
-      Serial.println(", Master, Debug");
+      DBG_SERIAL.println(", Master, Debug");
       DBG_Master();
       delay(1000);
       break;
 
     case DBG_SLAVE:
-      Serial.println(", Slave, Debug");
+      DBG_SERIAL.println(", Slave, Debug");
       DBG_Slave();
       delay(1000);
       break;
 
     // If current device is not MASTER, it will only listens data
-    // from 485 line on Serial1, and then transmit to Serial1.
+    // from 485 line on DAT_SERIAL, and then transmit to DEV_SERIAL.
     default:
-      Serial.println(", default (Slave), Release");
+      DBG_SERIAL.println(", default (Slave), Release");
       Slave();
       break;
   }
@@ -119,10 +126,12 @@ void loop() {
 void SendDataToLED(String s)
 {
   digitalWrite(LED_CONTROL, LOW);
+  digitalWrite(LED_STATE, LOW);
   delay(1);
-  Serial1.println(s);
+  DEV_SERIAL.println(s);
   delay(2);
   digitalWrite(LED_CONTROL, HIGH);
+  digitalWrite(LED_STATE, HIGH);
 }
 
 uint32_t hex2deci(const char* strHex)
@@ -176,7 +185,7 @@ int MasterPreprocess(String comdata)
   {
     if (comdata[index + 1] == 'c')
     {
-      tag = comdata[comdata.indexOf(':') + 1];    // Get tag number.
+      tag = comdata[comdata.indexOf(':') - 1];    // Get tag number.
       dists[0] = hex2deci(comdata.substring(index + 6, index + 14).c_str());
       dists[1] = hex2deci(comdata.substring(index + 15, index + 23).c_str());
       dists[2] = hex2deci(comdata.substring(index + 24, index + 32).c_str());
@@ -194,17 +203,26 @@ int MasterPreprocess(String comdata)
 void Master()
 {
   static int currentSendDevice = 1;
-  if (Serial1)
+  if (DEV_SERIAL)
   {
-    comdata = Serial1.readStringUntil('\n');
+    comdata = DEV_SERIAL.readStringUntil('\n');
     if (MasterPreprocess(comdata) == 0)    // Got a set of valid distance data.
     {
       GetLocation(&solution, 0, anchors, dists);
       String msg = "^B" + String(currentSendDevice) + "T" + String(tag) + "X" + String(solution.x) + "Y" + String(solution.y) + "$%";
 
-      Serial2.println(msg);
-      while (Serial1.read() >= 0);
-      currentSendDevice = constrain(++currentSendDevice, 1, 6);
+      DAT_SERIAL.println(msg);
+      DBG_SERIAL.println(msg);
+      while (DEV_SERIAL.read() >= 0);
+     // currentSendDevice = constrain(++currentSendDevice, 1, 6);
+      if(currentSendDevice == 6)
+      {
+        currentSendDevice = 1;
+      }
+      else
+      {
+        currentSendDevice++;
+      }
     }
     else
     {
@@ -218,9 +236,9 @@ void Master()
 }
 void Slave()
 {
-  if (Serial2)
+  if (DAT_SERIAL)
   {
-    comdata = Serial2.readStringUntil('%');
+    comdata = DAT_SERIAL.readStringUntil('%');
     int index = comdata.indexOf('^');
     if (index == -1 || String(comdata[index + 2]).toInt() != ID)
     {
@@ -230,22 +248,23 @@ void Slave()
     {
       String msg = "^" + comdata.substring(index + 3);
       SendDataToLED(msg);
+      DBG_SERIAL.println(msg);
     }
   }
-  while (Serial2.read() >= 0);
+  while (DAT_SERIAL.read() >= 0);
 }
 
 void DBG_Master()
 {
-  static int fake_dis_num = 0;
+  static int fake_dis_num = 1;
 
   String comdata = fake_dis[fake_dis_num];
   if (MasterPreprocess(comdata) == 0)
   {
     GetLocation(&solution, 0, anchors, dists);
-    String msg = "^B" + String(0) + "T" + String(tag) + "X" + String(solution.x) + "Y" + String(solution.y) + "$%";
-    Serial2.println(msg);
-    Serial.println(msg);
+    String msg = "^B" + String(1) + "T" + String(tag) + "X" + String(solution.x) + "Y" + String(solution.y) + "$%";
+    DAT_SERIAL.println(msg);
+    DBG_SERIAL.println(msg);
   }
 
   fake_dis_num++;
@@ -264,7 +283,7 @@ void DBG_Slave()
 
   String msg = "^" + comdata.substring(3);
   SendDataToLED(msg);
-  Serial.println(msg);
+  DBG_SERIAL.println(msg);
   fake_loc_num++;
   if(fake_loc_num == 6)
   {
