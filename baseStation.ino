@@ -221,7 +221,7 @@ void Master()
       }
       else
       {
-        currentSendDevice++;
+        //currentSendDevice++;
       }
     }
     else
