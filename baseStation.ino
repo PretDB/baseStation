@@ -214,8 +214,8 @@ void Master()
       DAT_SERIAL.println(msg);
       DBG_SERIAL.println(msg);
       while (DEV_SERIAL.read() >= 0);
-     // currentSendDevice = constrain(++currentSendDevice, 1, 6);
-      if(currentSendDevice == 6)
+      // currentSendDevice = constrain(++currentSendDevice, 1, 6);
+      if (currentSendDevice == 6)
       {
         currentSendDevice = 1;
       }
@@ -257,20 +257,30 @@ void Slave()
 void DBG_Master()
 {
   static int fake_dis_num = 1;
-
+  static int currentSendDevice = 1;
   String comdata = fake_dis[fake_dis_num];
   if (MasterPreprocess(comdata) == 0)
   {
     GetLocation(&solution, 0, anchors, dists);
-    String msg = "^B" + String(1) + "T" + String(tag) + "X" + String(solution.x) + "Y" + String(solution.y) + "$%";
+    String msg = "^B" + String(currentSendDevice) + "T" + String(tag) + "X" + String(solution.x) + "Y" + String(solution.y) + "$%";
     DAT_SERIAL.println(msg);
     DBG_SERIAL.println(msg);
   }
 
   fake_dis_num++;
-  if(fake_dis_num == 6)
+
+  if (fake_dis_num == 6)
   {
     fake_dis_num = 0;
+  }
+  
+  if (currentSendDevice == 6)
+  {
+    currentSendDevice = 1;
+  }
+  else
+  {
+    currentSendDevice++;
   }
 }
 
@@ -285,7 +295,7 @@ void DBG_Slave()
   SendDataToLED(msg);
   DBG_SERIAL.println(msg);
   fake_loc_num++;
-  if(fake_loc_num == 6)
+  if (fake_loc_num == 6)
   {
     fake_loc_num = 0;
   }
