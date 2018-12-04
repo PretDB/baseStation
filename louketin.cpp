@@ -13,15 +13,15 @@ vec3d anchors[4] = { { 1.50, 1.25, 0.00 },
   { 4.50, 1.25, 0.00 },
   { 0.00, 0.00, 0.00 }
 };
-char tag = 0;
+char tag = '0';
 int dists[4];
 String comdata = "";
 
-String fake_dis[] = { "mc 07 00000b0e 000005dc 00000b0e 00000000 0001 c0 40424042 a0:0",
+String fake_dis[] = { "mc 07 00000b0e 000005dc 00000b0e 00000000 0001 c0 40424042 a1:0",
                       "mc 07 000005dc 00000b0e 000013a6 00000000 0002 c0 40424042 a0:0",
-                      "mc 07 00000960 00000bb8 00000960 00000000 0003 c0 40424042 a0:0",
+                      "mc 07 00000960 00000bb8 00000960 00000000 0003 c0 40424042 a1:0",
                       "mc 07 00000b0e 000005dc 00000b0e 00000000 0004 c0 40424042 a0:1",
-                      "mc 07 000005dc 00000b0e 000013a6 00000000 0005 c0 40424042 a0:1",
+                      "mc 07 000005dc 00000b0e 000013a6 00000000 0005 c0 40424042 a1:1",
                       "mc 07 00000960 00000bb8 00000960 00000000 0006 c0 40424042 a0:1"
                     };
 String fake_loc[] = { "^B1T0X2.4Y1.5$%",
@@ -224,7 +224,7 @@ void Slave()
 
 void DBG_Master()
 {
-  static int fake_dis_num = 1;
+  static int fake_dis_num = 0;
   static int currentSendDevice = 1;
   String comdata = fake_dis[fake_dis_num];
   if (MasterPreprocess(comdata) == 0)
