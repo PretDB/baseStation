@@ -58,7 +58,8 @@ void loc_setup()
 
 void loc_loop()
 {
-  ID = GetID();
+  //ID = GetID();
+  ID = DBG_MASTER;
   DBG_SERIAL.print("ID = " + String(ID));
   switch (ID)
   {

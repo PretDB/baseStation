@@ -45,25 +45,17 @@ void brd_setup()
 	BRD_SERIAL.setTimeout(DEFAULT_SERIAL_TIMEOUT_SHORT);
 }  // }}}
 
+// This method only maintain the udp connection.
 void brd_loop()
 {
 	unsigned char netStatus = CheckNetwork();
-	DBG_SERIAL.println(netStatus);
+	DBG_SERIAL.println("Net Status: " + String(netStatus));
 
-	if(netStatus == 0x07)
-	{
-		// Send data
-	}
-	else if(netStatus == 0x03)
+	if(netStatus == 0x03)
 	{
 		//Establish udp
 		EstablishUDP();
 		DBG_SERIAL.println("EstablishUDP");
-	}
-	else if( netStatus & 0x01 == 0x01)
-	{
-		// wait for ip not assigned.
-		return;
 	}
 }
 

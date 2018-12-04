@@ -6,6 +6,7 @@ extern bool bWiFiConnected;
 extern bool bIPGot;
 extern bool bUDPEstablished;
 extern unsigned char ID;
+extern char tag;
 extern vec3d solution;
 
 void setup() {
@@ -14,8 +15,8 @@ void setup() {
 }
 
 void loop() {
-  String loc = String(solution.x) + "\t" + String(solution.y);
+  String msg = "^T" + String(tag) + "X" + String(solution.x) + "Y" + String(solution.y) + "$";
   loc_loop();
   brd_loop();
-  Serial.println(BroadcastMessage(loc));
+  BroadcastMessage(msg);
 }
