@@ -19,4 +19,5 @@ void loop() {
   loc_loop();
   brd_loop();
   BroadcastMessage(msg);
+  delay(100);
 }

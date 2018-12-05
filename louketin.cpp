@@ -143,21 +143,42 @@ int GetID()
 // to calculate location.
 int MasterPreprocess(String comdata)
 {
-  int index = comdata.indexOf('m');
+  int index = comdata.indexOf(':');
   if (index == -1)
   {
     return -1;    // Not a valid Message.
   }
   else
   {
-    if (comdata[index + 1] == 'c')
+    //    if (comdata[index + 1] == 'c')
+    //    {
+    //      tag = comdata[comdata.indexOf(':') - 1];    // Get tag number.
+    //      dists[0] = hex2deci(comdata.substring(index + 6, index + 14).c_str());
+    //      dists[1] = hex2deci(comdata.substring(index + 15, index + 23).c_str());
+    //      dists[2] = hex2deci(comdata.substring(index + 24, index + 32).c_str());
+    //      dists[3] = dists[0];
+    //      Serial.print(dists[0]);
+    //      Serial.print(" ");
+    //      Serial.print(dists[1]);
+    //      Serial.print(" ");
+    //      Serial.println(dists[2]);
+    //      return 0;
+    //    }
+    if (comdata.length() >= 60 && comdata.indexOf('7') < 3)
     {
-      tag = comdata[comdata.indexOf(':') - 1];    // Get tag number.
-      dists[0] = hex2deci(comdata.substring(index + 6, index + 14).c_str());
-      dists[1] = hex2deci(comdata.substring(index + 15, index + 23).c_str());
-      dists[2] = hex2deci(comdata.substring(index + 24, index + 32).c_str());
+      tag = comdata[index - 1];
+      String st0 = comdata.substring(index - 55, index - 47);
+      String st1 = comdata.substring(index - 46, index - 38);
+      String st2 = comdata.substring(index - 37, index - 29);
+      dists[0] = hex2deci(st0.c_str());
+      dists[1] = hex2deci(st1.c_str());
+      dists[2] = hex2deci(st2.c_str());
       dists[3] = dists[0];
-
+      Serial.print(dists[0]);
+      Serial.print(" ");
+      Serial.print(dists[1]);
+      Serial.print(" ");
+      Serial.println(dists[2]);
       return 0;
     }
     else
@@ -173,6 +194,8 @@ void Master()
   if (DEV_SERIAL)
   {
     comdata = DEV_SERIAL.readStringUntil('\n');
+
+    DBG_SERIAL.println(comdata);
     if (MasterPreprocess(comdata) == 0)    // Got a set of valid distance data.
     {
       GetLocation(&solution, 0, anchors, dists);
@@ -181,6 +204,7 @@ void Master()
 
       DAT_SERIAL.println(msg);
       DBG_SERIAL.println(msg);
+      DBG_SERIAL.println(solution.x);
       while (DEV_SERIAL.read() >= 0);
       // currentSendDevice = constrain(++currentSendDevice, 1, 6);
       if (currentSendDevice == 6)
@@ -201,6 +225,7 @@ void Master()
   {
     comdata = "";
   }
+  while (DEV_SERIAL.read() >= 0);
 }
 void Slave()
 {
@@ -242,7 +267,7 @@ void DBG_Master()
   {
     fake_dis_num = 0;
   }
-  
+
   if (currentSendDevice == 6)
   {
     currentSendDevice = 1;
