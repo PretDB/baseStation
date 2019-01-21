@@ -5,8 +5,8 @@
 // Pin and device declarations {{{
 #define ID_BIT_1 PB0
 #define ID_BIT_2 PB1
-#define ID_BIT_3 PA6
-#define ID_BIT_4 PA7
+#define ID_BIT_3 PA7
+#define ID_BIT_4 PA6
 
 #define DBG_SERIAL Serial
 #define DEV_SERIAL Serial3
