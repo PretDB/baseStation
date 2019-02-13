@@ -14,6 +14,8 @@
 #define LED_CONTROL PB13
 
 #define LED_STATE PB14
+
+#define SEED_PIN PA0
 // }}}
 
 // Parameter declarations {{{

@@ -43,6 +43,11 @@ void loc_setup()
   pinMode(ID_BIT_2, INPUT);
   pinMode(ID_BIT_3, INPUT);
   pinMode(ID_BIT_4, INPUT);
+
+  // Init seed pin as analog input to read a random value to init
+  // the random number generator.
+  pinMode(SEED_PIN, INPUT_ANALOG); 
+
   // DEV_SERIAL for external devices, such as led transmiter and
   // uwb module.
   DEV_SERIAL.begin(115200);
@@ -50,6 +55,7 @@ void loc_setup()
 
   // Clear Serial data on rx line.
   while (DEV_SERIAL.read() >= 0);
+
   DBG_SERIAL.println("loc Initialized");
 }
 // }}}
@@ -58,7 +64,7 @@ void loc_setup()
 void loc_loop()
 {
   ID = GetID();
-  // ID = DBG_MASTER;
+
   DBG_SERIAL.print("ID = " + String(ID));
   switch (ID)
   {
@@ -212,22 +218,23 @@ void Master()
 }
 void Slave()
 {
-//   if (DAT_SERIAL)
-//   {
-//     comdata = DAT_SERIAL.readStringUntil('%');
-//     int index = comdata.indexOf('^');
-//     if (index == -1 || String(comdata[index + 2]).toInt() != ID)
-//     {
-//       return;
-//     }
-//     else
-//     {
-//       String msg = "^" + comdata.substring(index + 3);
-//       SendDataToLED(msg);
-//       DBG_SERIAL.println(msg);
-//     }
-//   }
-//   while (DAT_SERIAL.read() >= 0);
+  // Send window set to 20ms.
+  // Magic number 240 is dead time of sending.
+  // See below.
+  //
+  //       Total window size ( 20ms )         
+  // /---------------------------------------\
+  //
+  // /---------------------------------------\
+  // |                                       |
+  // \---------------------------------------/
+  //
+  // \---------------------------------/
+  // Valid send start time ( 20ms - 240us )
+  //                          Dead time \----/
+  int start = random(20000) - 240;
+  delayMicroseconds(start);
+  SendDataToLED(String(ID));
 }
 
 void DBG_Master()
@@ -263,16 +270,5 @@ void DBG_Master()
 // DBG_Slave only send loc data to led transmiter.
 void DBG_Slave()
 {
-  static int fake_loc_num = 0;
-
-  String comdata = fake_loc[fake_loc_num];
-
-  String msg = "^" + comdata.substring(3);
-  SendDataToLED(msg);
-  DBG_SERIAL.println(msg);
-  fake_loc_num++;
-  if (fake_loc_num == 6)
-  {
-    fake_loc_num = 0;
-  }
+  Slave();
 }
