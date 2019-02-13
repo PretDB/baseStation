@@ -49,13 +49,13 @@ void brd_setup()
 void brd_loop()
 {
 	unsigned char netStatus = CheckNetwork();
-	DBG_SERIAL.println("Net Status: " + String(netStatus));
+	// DBG_SERIAL.println("Net Status: " + String(netStatus));
 
 	if(netStatus == 0x03)
 	{
 		//Establish udp
 		EstablishUDP();
-		DBG_SERIAL.println("EstablishUDP");
+		// DBG_SERIAL.println("EstablishUDP");
 	}
 }
 
@@ -96,7 +96,7 @@ bool EnterThrough()
 {
 	if(CheckNetwork() == 0b111)
 	{
-		DBG_SERIAL.println("connected");
+		// DBG_SERIAL.println("connected");
 	}
 	else
 	{

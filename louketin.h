@@ -3,8 +3,8 @@
 
 
 // Pin and device declarations {{{
-#define ID_BIT_1 PB0
-#define ID_BIT_2 PB1
+#define ID_BIT_1 PB1
+#define ID_BIT_2 PB0
 #define ID_BIT_3 PA7
 #define ID_BIT_4 PA6
 
@@ -15,7 +15,7 @@
 
 #define LED_CONTROL PB13
 
-#define LED_STATE PB12
+#define LED_STATE PB14
 // }}}
 
 // Parameter declarations {{{
