@@ -120,11 +120,10 @@ uint32_t hex2deci(const char* strHex)
 
 void SendDataToLED(String s)
 {
-  digitalWrite(LED_CONTROL, LOW);
   digitalWrite(LED_STATE, LOW);
-  delay(1);
   DEV_SERIAL.println(s);
-  delay(2);
+  digitalWrite(LED_CONTROL, LOW);
+  delayMicroseconds(115 * (s.length() + 1));
   digitalWrite(LED_CONTROL, HIGH);
   digitalWrite(LED_STATE, HIGH);
 }
