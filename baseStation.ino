@@ -19,12 +19,12 @@ void setup() {
 
 void loop() {
   digitalWrite(LED_RUN, HIGH);
-  String msg = "^T" + String(tag) + "X" + String(solution.x) + "Y" + String(solution.y) + "$";
   
   loc_loop();
   if(ID == RLS_MASTER)
   {
     brd_loop();
+    String msg = "^T" + String(tag) + "X" + String(solution.x) + "Y" + String(solution.y) + "$";
     BroadcastMessage(msg);
   }
   digitalWrite(LED_RUN, LOW);

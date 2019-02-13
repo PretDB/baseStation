@@ -10,8 +10,6 @@
 
 #define DBG_SERIAL Serial2
 #define DEV_SERIAL Serial3
-#define DAT_SERIAL Serial2
-
 
 #define LED_CONTROL PB13
 

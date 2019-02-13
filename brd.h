@@ -18,7 +18,6 @@
 
 #define DBG_SERIAL Serial2
 #define BRD_SERIAL Serial1
-// #define BRD_SERIAL Serial
 
 extern bool bWiFiConnected;
 extern bool bIPGot;

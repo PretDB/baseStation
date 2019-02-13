@@ -43,18 +43,14 @@ void loc_setup()
   pinMode(ID_BIT_2, INPUT);
   pinMode(ID_BIT_3, INPUT);
   pinMode(ID_BIT_4, INPUT);
-  // DAT_SERIAL for data rail
-  DAT_SERIAL.begin(2400);
-  DAT_SERIAL.setTimeout(200);
   // DEV_SERIAL for external devices, such as led transmiter and
   // uwb module.
   DEV_SERIAL.begin(115200);
   DBG_SERIAL.begin(115200);    // Debug
 
   // Clear Serial data on rx line.
-  while (DAT_SERIAL.read() >= 0);
   while (DEV_SERIAL.read() >= 0);
-  // DBG_SERIAL.println("loc Initialized");
+  DBG_SERIAL.println("loc Initialized");
 }
 // }}}
 
@@ -83,8 +79,7 @@ void loc_loop()
       delay(1000);
       break;
 
-    // If current device is not MASTER, it will only listens data
-    // from 485 line on DAT_SERIAL, and then transmit to DEV_SERIAL.
+    // If current device is not MASTER, it will send its ID.
     default:
       DBG_SERIAL.println(", default (Slave), Release");
       Slave();
@@ -191,7 +186,6 @@ void Master()
       //String msg = "^B" + String(currentSendDevice) + "T" + String(tag) + "X" + String(solution.x) + "Y" + String(solution.y) + "$%";
       String msg = "^B" + String(currentSendDevice) + "B" + String(currentSendDevice) + "$%";
 
-      DAT_SERIAL.println(msg);
       DBG_SERIAL.println(msg);
       // DBG_SERIAL.println(solution.x);
       while (DEV_SERIAL.read() >= 0);
@@ -218,22 +212,22 @@ void Master()
 }
 void Slave()
 {
-  if (DAT_SERIAL)
-  {
-    comdata = DAT_SERIAL.readStringUntil('%');
-    int index = comdata.indexOf('^');
-    if (index == -1 || String(comdata[index + 2]).toInt() != ID)
-    {
-      return;
-    }
-    else
-    {
-      String msg = "^" + comdata.substring(index + 3);
-      SendDataToLED(msg);
-      DBG_SERIAL.println(msg);
-    }
-  }
-  while (DAT_SERIAL.read() >= 0);
+//   if (DAT_SERIAL)
+//   {
+//     comdata = DAT_SERIAL.readStringUntil('%');
+//     int index = comdata.indexOf('^');
+//     if (index == -1 || String(comdata[index + 2]).toInt() != ID)
+//     {
+//       return;
+//     }
+//     else
+//     {
+//       String msg = "^" + comdata.substring(index + 3);
+//       SendDataToLED(msg);
+//       DBG_SERIAL.println(msg);
+//     }
+//   }
+//   while (DAT_SERIAL.read() >= 0);
 }
 
 void DBG_Master()
@@ -246,7 +240,6 @@ void DBG_Master()
     GetLocation(&solution, 0, anchors, dists);
     //String msg = "^B" + String(currentSendDevice) + "T" + String(tag) + "X" + String(solution.x) + "Y" + String(solution.y) + "$%";
     String msg = "^B" + String(currentSendDevice) + "B" + String(currentSendDevice) + "$%";
-    DAT_SERIAL.println(msg);
     DBG_SERIAL.println(msg);
   }
 
