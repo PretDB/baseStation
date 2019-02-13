@@ -18,7 +18,7 @@ void setup() {
 }
 
 void loop() {
-  digitalWrite(LED_RUN, LOW);
+  digitalWrite(LED_RUN, HIGH);
   String msg = "^T" + String(tag) + "X" + String(solution.x) + "Y" + String(solution.y) + "$";
   
   loc_loop();
@@ -27,6 +27,6 @@ void loop() {
     brd_loop();
     BroadcastMessage(msg);
   }
-  digitalWrite(LED_RUN, HIGH);
+  digitalWrite(LED_RUN, LOW);
   delay(100);
 }

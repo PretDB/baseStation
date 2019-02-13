@@ -8,7 +8,7 @@
 #define ID_BIT_3 PA7
 #define ID_BIT_4 PA6
 
-#define DBG_SERIAL Serial
+#define DBG_SERIAL Serial2
 #define DEV_SERIAL Serial3
 #define DAT_SERIAL Serial2
 

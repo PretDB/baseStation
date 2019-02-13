@@ -16,7 +16,7 @@
 
 #define USE_SEMAPHORE_DMA1
 
-#define DBG_SERIAL Serial
+#define DBG_SERIAL Serial2
 #define BRD_SERIAL Serial1
 // #define BRD_SERIAL Serial
 

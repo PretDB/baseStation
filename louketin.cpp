@@ -49,7 +49,7 @@ void loc_setup()
   // DEV_SERIAL for external devices, such as led transmiter and
   // uwb module.
   DEV_SERIAL.begin(115200);
-  // DBG_SERIAL.begin(115200);    // Debug
+  DBG_SERIAL.begin(115200);    // Debug
 
   // Clear Serial data on rx line.
   while (DAT_SERIAL.read() >= 0);
@@ -62,23 +62,23 @@ void loc_setup()
 void loc_loop()
 {
   ID = GetID();
-  //ID = DBG_MASTER;
-  // DBG_SERIAL.print("ID = " + String(ID));
+  // ID = DBG_MASTER;
+  DBG_SERIAL.print("ID = " + String(ID));
   switch (ID)
   {
     case RLS_MASTER:
-      // DBG_SERIAL.println(", Master, Release");
+      DBG_SERIAL.println(", Master, Release");
       Master();
       break;
 
     case DBG_MASTER:
-      // DBG_SERIAL.println(", Master, Debug");
+      DBG_SERIAL.println(", Master, Debug");
       DBG_Master();
       delay(1000);
       break;
 
     case DBG_SLAVE:
-      // DBG_SERIAL.println(", Slave, Debug");
+      DBG_SERIAL.println(", Slave, Debug");
       DBG_Slave();
       delay(1000);
       break;
@@ -86,7 +86,7 @@ void loc_loop()
     // If current device is not MASTER, it will only listens data
     // from 485 line on DAT_SERIAL, and then transmit to DEV_SERIAL.
     default:
-      // DBG_SERIAL.println(", default (Slave), Release");
+      DBG_SERIAL.println(", default (Slave), Release");
       Slave();
       break;
   }
@@ -154,20 +154,6 @@ int MasterPreprocess(String comdata)
   }
   else
   {
-    //    if (comdata[index + 1] == 'c')
-    //    {
-    //      tag = comdata[comdata.indexOf(':') - 1];    // Get tag number.
-    //      dists[0] = hex2deci(comdata.substring(index + 6, index + 14).c_str());
-    //      dists[1] = hex2deci(comdata.substring(index + 15, index + 23).c_str());
-    //      dists[2] = hex2deci(comdata.substring(index + 24, index + 32).c_str());
-    //      dists[3] = dists[0];
-    //      Serial.print(dists[0]);
-    //      Serial.print(" ");
-    //      Serial.print(dists[1]);
-    //      Serial.print(" ");
-    //      Serial.println(dists[2]);
-    //      return 0;
-    //    }
     if (comdata.length() >= 60 && comdata.indexOf('7') > 3)
     {
       tag = comdata[index - 1];
@@ -199,7 +185,7 @@ void Master()
   {
     comdata = DEV_SERIAL.readStringUntil('\n');
 
-    // DBG_SERIAL.println(comdata);
+    DBG_SERIAL.println(comdata);
     if (MasterPreprocess(comdata) == 0)    // Got a set of valid distance data.
     {
       GetLocation(&solution, 0, anchors, dists);
@@ -207,7 +193,7 @@ void Master()
       String msg = "^B" + String(currentSendDevice) + "B" + String(currentSendDevice) + "$%";
 
       DAT_SERIAL.println(msg);
-      // DBG_SERIAL.println(msg);
+      DBG_SERIAL.println(msg);
       // DBG_SERIAL.println(solution.x);
       while (DEV_SERIAL.read() >= 0);
       // currentSendDevice = constrain(++currentSendDevice, 1, 6);
@@ -245,7 +231,7 @@ void Slave()
     {
       String msg = "^" + comdata.substring(index + 3);
       SendDataToLED(msg);
-      // DBG_SERIAL.println(msg);
+      DBG_SERIAL.println(msg);
     }
   }
   while (DAT_SERIAL.read() >= 0);
@@ -291,7 +277,7 @@ void DBG_Slave()
 
   String msg = "^" + comdata.substring(3);
   SendDataToLED(msg);
-  // DBG_SERIAL.println(msg);
+  DBG_SERIAL.println(msg);
   fake_loc_num++;
   if (fake_loc_num == 6)
   {
