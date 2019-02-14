@@ -270,16 +270,5 @@ void DBG_Master()
 // DBG_Slave only send loc data to led transmiter.
 void DBG_Slave()
 {
-  static int fake_loc_num = 0;
-
-  String comdata = fake_loc[fake_loc_num];
-
-  String msg = "^" + comdata.substring(3);
-  SendDataToLED(msg);
-  DBG_SERIAL.println(msg);
-  fake_loc_num++;
-  if (fake_loc_num == 6)
-  {
-    fake_loc_num = 0;
-  }
+  Slave();
 }
