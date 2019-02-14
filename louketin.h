@@ -9,7 +9,12 @@
 #define ID_BIT_4 PA6
 
 #define DBG_SERIAL Serial2
+// DEV_SERIAL is used for LiFi and UWB. device 
+// samultaneously. That is, RX on STM32 board is
+// connected to UWB., and TX is connected to
+// Lifi ( for TX of it is bot being used ).
 #define DEV_SERIAL Serial3
+#define LOC_SERIAL Serial3
 
 #define LED_CONTROL PB13
 

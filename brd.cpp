@@ -49,7 +49,7 @@ void brd_setup()
 void brd_loop()
 {
 	unsigned char netStatus = CheckNetwork();
-	// DBG_SERIAL.println("Net Status: " + String(netStatus));
+	DBG_SERIAL.println("\tNet Status: " + String(netStatus));
 
 	if(netStatus == 0x03)
 	{

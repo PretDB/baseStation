@@ -51,6 +51,7 @@ void loc_setup()
   // DEV_SERIAL for external devices, such as led transmiter and
   // uwb module.
   DEV_SERIAL.begin(115200);
+  DEV_SERIAL.setTimeout(500);
   DBG_SERIAL.begin(115200);    // Debug
 
   // Clear Serial data on rx line.
@@ -154,7 +155,7 @@ int MasterPreprocess(String comdata)
   }
   else
   {
-    if (comdata.length() >= 60 && comdata.indexOf('7') > 3)
+    if (comdata.length() >= 60 && comdata.indexOf('7') < 5)
     {
       tag = comdata[index - 1];
       String st0 = comdata.substring(index - 55, index - 47);
@@ -180,7 +181,6 @@ int MasterPreprocess(String comdata)
 
 void Master()
 {
-  static int currentSendDevice = 1;
   if (DEV_SERIAL)
   {
     comdata = DEV_SERIAL.readStringUntil('\n');
@@ -189,25 +189,8 @@ void Master()
     if (MasterPreprocess(comdata) == 0)    // Got a set of valid distance data.
     {
       GetLocation(&solution, 0, anchors, dists);
-      //String msg = "^B" + String(currentSendDevice) + "T" + String(tag) + "X" + String(solution.x) + "Y" + String(solution.y) + "$%";
-      String msg = "^B" + String(currentSendDevice) + "B" + String(currentSendDevice) + "$%";
 
-      DBG_SERIAL.println(msg);
-      // DBG_SERIAL.println(solution.x);
       while (DEV_SERIAL.read() >= 0);
-      // currentSendDevice = constrain(++currentSendDevice, 1, 6);
-      if (currentSendDevice == 6)
-      {
-        currentSendDevice = 1;
-      }
-      else
-      {
-        currentSendDevice++;
-      }
-    }
-    else
-    {
-      return;
     }
   }
   else
@@ -215,6 +198,9 @@ void Master()
     comdata = "";
   }
   while (DEV_SERIAL.read() >= 0);
+
+  // Send ID as a slave
+  Slave();
 }
 void Slave()
 {
