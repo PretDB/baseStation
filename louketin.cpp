@@ -122,7 +122,7 @@ uint32_t hex2deci(const char* strHex)
 void SendDataToLED(String s)
 {
   digitalWrite(LED_STATE, LOW);
-  DEV_SERIAL.println(s);
+  DEV_SERIAL.print(s);
   digitalWrite(LED_CONTROL, LOW);
   delayMicroseconds(LED_DEADTIME * (s.length() + 1));
   digitalWrite(LED_CONTROL, HIGH);
@@ -230,8 +230,7 @@ void Slave()
   // Valid send start time ( windowSize - deadTime )
   //                          Dead time \----/
 
-  // String message = String(ID);
-  String message = "ID = " + String(ID);
+  String message = String(ID);
   int startTime = random(WINDOW_SIZE - LED_DEADTIME);
   
   delayMicroseconds(startTime);
