@@ -34,6 +34,9 @@
 // will runs under release mode.
 #define DBG_MASTER   0x8    // Debug in master mode.
 #define DBG_SLAVE    0x9    // Debug in slave mode.
+
+#define WINDOW_SIZE  20000  // Send window ( us )
+#define LED_DEADTIME 120    // Led dead time ( us )
 // }}}
 
 extern unsigned char ID;

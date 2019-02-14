@@ -267,4 +267,3 @@ String Transmitter(String* pCommand)
 	
 		return ret;
 }  // }}}
-

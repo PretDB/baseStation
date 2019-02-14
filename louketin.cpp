@@ -76,13 +76,13 @@ void loc_loop()
     case DBG_MASTER:
       DBG_SERIAL.println(", Master, Debug");
       DBG_Master();
-      delay(1000);
+      delay(900);
       break;
 
     case DBG_SLAVE:
       DBG_SERIAL.println(", Slave, Debug");
       DBG_Slave();
-      delay(1000);
+      delay(900);
       break;
 
     // If current device is not MASTER, it will send its ID.
@@ -124,7 +124,7 @@ void SendDataToLED(String s)
   digitalWrite(LED_STATE, LOW);
   DEV_SERIAL.println(s);
   digitalWrite(LED_CONTROL, LOW);
-  delayMicroseconds(115 * (s.length() + 1));
+  delayMicroseconds(LED_DEADTIME * (s.length() + 1));
   digitalWrite(LED_CONTROL, HIGH);
   digitalWrite(LED_STATE, HIGH);
 }
@@ -218,11 +218,8 @@ void Master()
 }
 void Slave()
 {
-  // Send window set to 20ms.
-  // Magic number 240 is dead time of sending.
-  // See below.
   //
-  //       Total window size ( 20ms )         
+  //             Total window size         
   // /---------------------------------------\
   //
   // /---------------------------------------\
@@ -230,11 +227,16 @@ void Slave()
   // \---------------------------------------/
   //
   // \---------------------------------/
-  // Valid send start time ( 20ms - 240us )
+  // Valid send start time ( windowSize - deadTime )
   //                          Dead time \----/
-  int start = random(20000) - 240;
-  delayMicroseconds(start);
-  SendDataToLED(String(ID));
+
+  // String message = String(ID);
+  String message = "ID = " + String(ID);
+  int startTime = random(WINDOW_SIZE - LED_DEADTIME);
+  
+  delayMicroseconds(startTime);
+  SendDataToLED(message);
+  delayMicroseconds(WINDOW_SIZE - startTime);
 }
 
 void DBG_Master()

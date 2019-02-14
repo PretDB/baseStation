@@ -18,7 +18,7 @@ void setup() {
 }
 
 void loop() {
-  digitalWrite(LED_RUN, HIGH);
+  digitalWrite(LED_RUN, LOW);
   
   loc_loop();
   if(ID == RLS_MASTER)
@@ -27,6 +27,6 @@ void loop() {
     String msg = "^T" + String(tag) + "X" + String(solution.x) + "Y" + String(solution.y) + "$";
     BroadcastMessage(msg);
   }
-  digitalWrite(LED_RUN, LOW);
-  delay(100);
+  digitalWrite(LED_RUN, HIGH);
+  // delay(100);
 }
