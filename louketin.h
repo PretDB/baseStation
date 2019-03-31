@@ -30,6 +30,7 @@
 // and then transmit the location to the specified
 // device ( 1 ~ 6 ) via RS-485 via UART.
 #define RLS_MASTER 0x0
+#define RLS_ALLWAYS_ON 0x0A // Keeps light always on.
 // Definations below is about debug mode. While the
 // module runs under debug mode, it will generate
 // a fake data. For master, it generates a fake
@@ -53,6 +54,7 @@ void loc_loop();
 uint32_t hex2deci(const char* strHex);
 void SendDataToLED(String s);
 int MasterPreprocess(String comdata);
+void AllwaysOn();
 void Master();
 void Slave();
 void DBG_Master();

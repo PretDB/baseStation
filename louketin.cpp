@@ -69,6 +69,9 @@ void loc_loop()
   DBG_SERIAL.print("ID = " + String(ID));
   switch (ID)
   {
+    case RLS_ALLWAYS_ON:
+      AllwaysOn();
+      break;
     case RLS_MASTER:
       DBG_SERIAL.println(", Master, Release");
       Master();
@@ -177,6 +180,12 @@ int MasterPreprocess(String comdata)
       return -1;    // Message broken.
     }
   }
+}
+
+void AllwaysOn()
+{
+  digitalWrite(LED_CONTROL, HIGH);
+  digitalWrite(LED_STATE, LOW);
 }
 
 void Master()
