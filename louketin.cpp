@@ -66,25 +66,22 @@ void loc_loop()
 {
   ID = GetID();
 
-  DBG_SERIAL.print("ID = " + String(ID));
   switch (ID)
   {
     case RLS_ALLWAYS_ON:
       AllwaysOn();
       break;
     case RLS_MASTER:
-      DBG_SERIAL.println(", Master, Release");
       Master();
       break;
-
+    case RLS_SWITCH:
+      break;
     case DBG_MASTER:
-      DBG_SERIAL.println(", Master, Debug");
       DBG_Master();
       delay(900);
       break;
 
     case DBG_SLAVE:
-      DBG_SERIAL.println(", Slave, Debug");
       DBG_Slave();
       delay(900);
       break;
@@ -168,11 +165,6 @@ int MasterPreprocess(String comdata)
       dists[1] = hex2deci(st1.c_str());
       dists[2] = hex2deci(st2.c_str());
       dists[3] = dists[0];
-      DBG_SERIAL.print(dists[0]);
-      DBG_SERIAL.print(" ");
-      DBG_SERIAL.print(dists[1]);
-      DBG_SERIAL.print(" ");
-      DBG_SERIAL.println(dists[2]);
       return 0;
     }
     else
@@ -188,13 +180,18 @@ void AllwaysOn()
   digitalWrite(LED_STATE, LOW);
 }
 
+void AllwaysOff()
+{
+  digitalWrite(LED_CONTROL, LOW);
+  digitalWrite(LED_STATE, HIGH);
+}
+
 void Master()
 {
   if (DEV_SERIAL)
   {
     comdata = DEV_SERIAL.readStringUntil('\n');
 
-    DBG_SERIAL.println(comdata);
     if (MasterPreprocess(comdata) == 0)    // Got a set of valid distance data.
     {
       GetLocation(&solution, 0, anchors, dists);
@@ -243,7 +240,6 @@ void DBG_Master()
     GetLocation(&solution, 0, anchors, dists);
     //String msg = "^B" + String(currentSendDevice) + "T" + String(tag) + "X" + String(solution.x) + "Y" + String(solution.y) + "$%";
     String msg = "^B" + String(currentSendDevice) + "B" + String(currentSendDevice) + "$%";
-    DBG_SERIAL.println(msg);
   }
 
   fake_dis_num++;

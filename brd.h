@@ -1,4 +1,3 @@
-#include <ArduinoJson.h>
 #include "trilateration.h"
 
 
@@ -27,10 +26,12 @@ extern vec3d solution;
 void brd_setup();
 void brd_loop();
 bool BroadcastMessage(String msg);
+void CheckMessage();
 bool EnterThrough();
 bool EstablishUDP();
 unsigned char CheckNetwork();
 bool SetAndTest(String* pCommand, String* pExpectedStart);
 String SetAndGet(String* pCommand, String* pExpectedStart);
 void ClearState();
-String Transmitter(String* pCommand);
+String Transmit(String* pCommand);
+String Receive();

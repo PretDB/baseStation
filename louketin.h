@@ -31,6 +31,7 @@
 // device ( 1 ~ 6 ) via RS-485 via UART.
 #define RLS_MASTER 0x0
 #define RLS_ALLWAYS_ON 0x0A // Keeps light always on.
+#define RLS_SWITCH 0x0B     // Controlable via UDP port.
 // Definations below is about debug mode. While the
 // module runs under debug mode, it will generate
 // a fake data. For master, it generates a fake
@@ -55,6 +56,7 @@ uint32_t hex2deci(const char* strHex);
 void SendDataToLED(String s);
 int MasterPreprocess(String comdata);
 void AllwaysOn();
+void AllwaysOff();
 void Master();
 void Slave();
 void DBG_Master();
